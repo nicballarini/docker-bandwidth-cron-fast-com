@@ -1,71 +1,68 @@
 #!/bin/bash
 
-LOG_DIR="/usr/src/app/fast.com_history_log"
+# Set variables
+LOG_DIR="/usr/src/app/speedtest_logs"
 MAX_LOG_FILES=5
 
-# create the log directory if it doesn't exist
-mkdir -p "$LOG_DIR"
+# Create log directory if it doesn't exist
+initialize_log_dir() {
+    mkdir -p "$LOG_DIR"
+}
 
-# function to clean up old logs and keep only the last 5
-cleanup_logs() {
-    log_count=$(ls "$LOG_DIR" | wc -l)
-    if (( log_count > MAX_LOG_FILES )); then
-        ls -t "$LOG_DIR" | tail -n +$((MAX_LOG_FILES+1)) | xargs -I {} rm "$LOG_DIR/{}"
+# Calculate averages from the last $MAX_LOG_FILES runs
+calculate_averages() {
+    # Only calculate if we have enough logs
+    if [ $(ls -1 "$LOG_DIR" | wc -l) -ge "$MAX_LOG_FILES" ]; then
+        AVG_DOWN=$(cat "$LOG_DIR"/speedtest_* | cut -d' ' -f5 | tail -n $MAX_LOG_FILES | paste -sd+ | bc)
+        AVG_UP=$(cat "$LOG_DIR"/speedtest_* | cut -d' ' -f9 | tail -n $MAX_LOG_FILES | paste -sd+ | bc)
+
+        # Divide to get the average speeds
+        AVG_DOWN=$(echo "$AVG_DOWN / $MAX_LOG_FILES" | bc)
+        AVG_UP=$(echo "$AVG_UP / $MAX_LOG_FILES" | bc)
+
+        echo "Average Download speed (last $MAX_LOG_FILES runs): $AVG_DOWN Mbps"
+        echo "Average Upload speed (last $MAX_LOG_FILES runs): $AVG_UP Mbps"
+    else
+        echo "Not enough data to calculate averages (less than $MAX_LOG_FILES logs)."
     fi
 }
 
-# function to log and extract values from the bandwidth test
-run_bandwidth_test() {
+# Run the speed test and log the output
+run_speed_test() {
+    LOG_FILE="$LOG_DIR/speedtest_$(date +%Y%m%d_%H%M%S).log"
     echo "Running Bandwidth test..."
+    /node_modules/.bin/fast --upload --single-line | tail -n 1 > "$LOG_FILE"
 
-    # generate a descriptive log file name with timestamp
-    LOG_FILE="$LOG_DIR/fastlog_$(date +'%Y-%m-%d_%H-%M-%S').log"
-
-    # run the test, store the result directly in a variable
-    result=$(/usr/src/app/node_modules/.bin/fast --upload --single-line | tail -n 1)
-
-    # check if the test returned a valid result
-    if [[ -z "$result" ]]; then
+    if [ $? -ne 0 ]; then
         echo "Bandwidth test failed."
-        return 1
+        exit 1
     fi
 
-    # log the result to the descriptive file
-    echo "$result" > "$LOG_FILE"
     echo "Bandwidth test finished."
     cat "$LOG_FILE"
 
-    # extract download and upload speeds
-    DOWN=$(echo "$result" | cut -d' ' -f5)
-    UP=$(echo "$result" | cut -d' ' -f9)
+    # Extract download and upload speeds from the latest log
+    DOWN=$(cat "$LOG_FILE" | cut -d' ' -f5)
+    UP=$(cat "$LOG_FILE" | cut -d' ' -f9)
 
-    echo "Current Download speed: $DOWN Mbps"
-    echo "Current Upload speed: $UP Mbps"
+    echo "Download: $DOWN Mbps, Upload: $UP Mbps"
 }
 
-# function to calculate and print the average download/upload speeds
-calculate_average_speeds() {
-    total_down=0
-    total_up=0
-    file_count=0
-
-    for file in "$LOG_DIR"/*; do
-        down=$(cat "$file" | cut -d' ' -f5)
-        up=$(cat "$file" | cut -d' ' -f9)
-
-        total_down=$(echo "$total_down + $down" | bc)
-        total_up=$(echo "$total_up + $up" | bc)
-        file_count=$((file_count + 1))
-    done
-
-    if (( file_count > 0 )); then
-        avg_down=$(echo "scale=2; $total_down / $file_count" | bc)
-        avg_up=$(echo "scale=2; $total_up / $file_count" | bc)
-        echo "Average Download speed (last $file_count runs): $avg_down Mbps"
-        echo "Average Upload speed (last $file_count runs): $avg_up Mbps"
+# Retain only the last $MAX_LOG_FILES logs
+manage_logs() {
+    LOG_COUNT=$(ls -1t "$LOG_DIR" | wc -l)
+    if [ "$LOG_COUNT" -gt "$MAX_LOG_FILES" ]; then
+        ls -1t "$LOG_DIR" | tail -n +$((MAX_LOG_FILES + 1)) | xargs -I {} rm "$LOG_DIR/{}"
     fi
 }
 
-run_bandwidth_test
-cleanup_logs
-calculate_average_speeds
+# Main function to execute the full process
+main() {
+    initialize_log_dir
+    calculate_averages     # Calculate averages from the existing logs before the new test
+    run_speed_test          # Run the new speed test and log the results
+    manage_logs             # Clean up old logs to maintain a max of $MAX_LOG_FILES
+}
+
+# Execute the main function
+main
