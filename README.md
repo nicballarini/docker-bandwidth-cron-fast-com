@@ -39,9 +39,9 @@ You can run the project using Docker Compose to customize the cron schedule:
 ---
 
 services:
-  speedtest-cron:
+  speedtest-scheduler:
     build: .
-    container_name: speedtest-cron
+    container_name: speedtest-scheduler
     environment:
       - CRON_SCHEDULE=0 3 * * 1   # Default cron schedule (3 AM every Monday), customize as needed
     #volumes:
@@ -61,14 +61,14 @@ This will run the container in detached mode, with the cron job configured to th
 You can check the logs for the bandwidth tests using:
 
 ```bash
-docker exec -it speedtest-cron cat /var/log/cron.log
+docker exec -it speedtest-scheduler cat /var/log/cron.log
 ```
 
 To check individual bandwidth test logs:
 
 ```bash
-docker exec -it speedtest-cron ls /tmp/fast.com_history_log
-docker exec -it speedtest-cron cat /tmp/fast.com_history_log/fastlog_<timestamp>.log
+docker exec -it speedtest-scheduler ls /tmp/fast.com_history_log
+docker exec -it speedtest-scheduler cat /tmp/fast.com_history_log/fastlog_<timestamp>.log
 ```
 
 ## Customization

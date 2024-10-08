@@ -27,13 +27,13 @@ COPY speedtest.sh /usr/src/app/speedtest.sh
 ENV CRON_SCHEDULE="0 3 * * 1"
 
 # Set up cron job using the CRON_SCHEDULE environment variable
-RUN echo "$CRON_SCHEDULE /bin/bash /usr/src/app/speedtest.sh >> /usr/src/app/cron.log 2>&1" > /etc/cron.d/speedtest-cron
+RUN echo "$CRON_SCHEDULE /bin/bash /usr/src/app/speedtest.sh >> /usr/src/app/cron.log 2>&1" > /etc/cron.d/speedtest-scheduler
 
 # Give execution rights on the cron job and script
-RUN chmod 0644 /etc/cron.d/speedtest-cron && chmod +x /usr/src/app/speedtest.sh
+RUN chmod 0644 /etc/cron.d/speedtest-scheduler && chmod +x /usr/src/app/speedtest.sh
 
 # Apply the cron job
-RUN crontab /etc/cron.d/speedtest-cron
+RUN crontab /etc/cron.d/speedtest-scheduler
 
 # Ensure correct ownership for Puppeteer's node_modules and setup directories
 RUN mkdir -p /node_modules && chown -R pptruser:pptruser /node_modules

@@ -1,9 +1,9 @@
 ---
 
 services:
-  speedtest-cron:
+  speedtest-scheduler:
     build: .
-    container_name: speedtest-cron
+    container_name: speedtest-scheduler
     environment:
       - CRON_SCHEDULE=0 3 * * 1   # Default cron schedule (3 AM every Monday), customize as needed
     # volumes:
