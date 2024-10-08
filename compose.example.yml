@@ -1,7 +1,7 @@
 ---
 
 services:
-  bandwidth-cron:
+  speedtest-cron:
     build: .
     container_name: speedtest-cron
     environment:
