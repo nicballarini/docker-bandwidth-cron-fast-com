@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LOG_DIR="/tmp/fast.com_history_log"
+LOG_DIR="/usr/src/app/fast.com_history_log"
 MAX_LOG_FILES=5
 
 # create the log directory if it doesn't exist

@@ -3,7 +3,7 @@
 services:
   bandwidth-cron:
     build: .
-    container_name: bandwidth-cron
+    container_name: speedtest-cron
     environment:
       - CRON_SCHEDULE=0 3 * * 1   # Default cron schedule (3 AM every Monday), customize as needed
     volumes:

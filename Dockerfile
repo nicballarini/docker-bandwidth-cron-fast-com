@@ -1,6 +1,8 @@
 # Use an official Node.js runtime as a parent image
 FROM node:18-buster-slim
 
+WORKDIR /usr/src/app
+
 # Install required packages (cron, wget, gnupg)
 RUN apt update && apt install -y cron wget gnupg
 
@@ -18,9 +20,6 @@ RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
     && mkdir -p /home/pptruser/Downloads \
     && chown -R pptruser:pptruser /home/pptruser
 
-# Create working directory
-WORKDIR /usr/src/app
-
 # Copy the speedtest script to the working directory
 COPY speedtest.sh /usr/src/app/speedtest.sh
 
@@ -28,7 +27,7 @@ COPY speedtest.sh /usr/src/app/speedtest.sh
 ENV CRON_SCHEDULE="0 3 * * 1"
 
 # Set up cron job using the CRON_SCHEDULE environment variable
-RUN echo "$CRON_SCHEDULE /bin/bash /usr/src/app/speedtest.sh >> /var/log/cron.log 2>&1" > /etc/cron.d/bandwidth-cron
+RUN echo "$CRON_SCHEDULE /bin/bash /usr/src/app/speedtest.sh >> /usr/src/app/cron.log 2>&1" > /etc/cron.d/bandwidth-cron
 
 # Give execution rights on the cron job and script
 RUN chmod 0644 /etc/cron.d/bandwidth-cron && chmod +x /usr/src/app/speedtest.sh
@@ -40,7 +39,7 @@ RUN crontab /etc/cron.d/bandwidth-cron
 RUN mkdir -p /node_modules && chown -R pptruser:pptruser /node_modules
 
 # Create the log file to be able to run tail
-RUN touch /var/log/cron.log
+RUN touch /usr/src/app/cron.log
 
 # Set the entrypoint to start cron in the background and tail the log file to keep the container running
-CMD cron && tail -f /var/log/cron.log
+CMD cron && tail -f /usr/src/app/cron.log

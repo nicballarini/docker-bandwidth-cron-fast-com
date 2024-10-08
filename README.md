@@ -41,11 +41,11 @@ You can run the project using Docker Compose to customize the cron schedule:
 services:
   bandwidth-cron:
     build: .
-    container_name: bandwidth-cron
+    container_name: speedtest-cron
     environment:
       - CRON_SCHEDULE=0 3 * * 1   # Default cron schedule (3 AM every Monday), customize as needed
-    volumes:
-      - ./logs:/var/log  # Optional: Mount logs for persistent storage
+    #volumes:
+    #  - ./logs:/var/log  # Optional: Mount logs for persistent storage
     restart: unless-stopped
 ```
 
