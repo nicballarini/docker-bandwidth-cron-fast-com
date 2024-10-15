@@ -13,7 +13,7 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
     && rm -rf /var/lib/apt/lists/*
 
 # Install Puppeteer and fast-cli globally
-RUN npm install puppeteer fast-cli --legacy-peer-deps --global
+RUN npm install -g fast-cli puppeteer
 
 # Create a non-root user for Puppeteer to run as
 RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \

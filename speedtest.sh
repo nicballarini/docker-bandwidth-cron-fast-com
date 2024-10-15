@@ -31,7 +31,7 @@ calculate_averages() {
 run_speed_test() {
     LOG_FILE="$LOG_DIR/speedtest_$(date +%Y%m%d_%H%M%S).log"
     echo "Running Bandwidth test..."
-    /node_modules/.bin/fast --upload --single-line | tail -n 1 > "$LOG_FILE"
+    /usr/local/bin/fast --upload --single-line | tail -n 1 > "$LOG_FILE"
 
     if [ $? -ne 0 ]; then
         echo "Bandwidth test failed."
@@ -48,12 +48,15 @@ run_speed_test() {
     echo "Download: $DOWN Mbps, Upload: $UP Mbps"
 }
 
-# Retain only the last $MAX_LOG_FILES logs
+# Retain only the last $MAX_LOG_FILES logs and truncate cron.log to 20 lines
 manage_logs() {
     LOG_COUNT=$(ls -1t "$LOG_DIR" | wc -l)
     if [ "$LOG_COUNT" -gt "$MAX_LOG_FILES" ]; then
         ls -1t "$LOG_DIR" | tail -n +$((MAX_LOG_FILES + 1)) | xargs -I {} rm "$LOG_DIR/{}"
     fi
+
+    # Truncate cron.log to the last 20 lines
+    tail -n 20 /usr/src/app/cron.log > /usr/src/app/cron.log.tmp && mv /usr/src/app/cron.log.tmp /usr/src/app/cron.log
 }
 
 # Main function to execute the full process

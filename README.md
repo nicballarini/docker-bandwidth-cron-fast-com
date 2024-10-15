@@ -17,7 +17,7 @@ This project runs a scheduled bandwidth test using [fast-cli](https://github.com
 
 ## How It Works
 1. The Dockerfile installs necessary packages, including `fast-cli`, `cron`, and Google Chrome (for Puppeteer).
-2. The main script, `run.sh`, performs the bandwidth test and saves the results in `/tmp/fast.com_history_log`.
+2. The main script, `run.sh`, performs the bandwidth test and saves the results in `/usr/src/app/speedtest_logs`.
 3. A cron job is set up in the Docker container to run the test based on a schedule defined by the `CRON_SCHEDULE` environment variable (defaults to Monday 3 AM).
 4. The container keeps running, logging all `cron` activity to `/var/log/cron.log`.
 
@@ -27,13 +27,13 @@ This project runs a scheduled bandwidth test using [fast-cli](https://github.com
 To build the Docker image, run the following command in the project directory:
 
 ```bash
-docker build -t bandwidth-monitor .
+docker build -t speedtest-scheduler .
 ```
 
 ### Run with Docker Compose
 You can run the project using Docker Compose to customize the cron schedule:
 
-1. Create a \`docker-compose.yml\` file in your project directory:
+1. Create a `docker-compose.yml` file in your project directory:
 
 ```yaml
 ---
@@ -71,23 +71,24 @@ docker exec -it speedtest-scheduler ls /tmp/fast.com_history_log
 docker exec -it speedtest-scheduler cat /tmp/fast.com_history_log/fastlog_<timestamp>.log
 ```
 
+## Manual Execution of the Speed Test
+
+If you want to manually run the speed test without waiting for the cron job, you can execute the script directly inside the running container:
+
+```bash
+docker exec -it speedtest-scheduler /bin/bash /usr/src/app/speedtest.sh
+```
+
 ## Customization
 
 ### Change the Cron Schedule
-To change the schedule, modify the \`CRON_SCHEDULE\` in the \`docker-compose.yml\` file.
+To change the schedule, modify the `CRON_SCHEDULE` in the `docker-compose.yml` file.
 
 For example, to run the test daily at 6 AM, use:
 
 ```yaml
 environment:
   - CRON_SCHEDULE=0 6 * * *
-```
-
-### Change the Sleep Interval (if applicable)
-If you decide to re-enable the \`sleep\` interval inside the script, set the \`SLEEP\` environment variable when running the container:
-
-```bash
-docker run -d -e SLEEP=3600 --name bandwidth-monitor bandwidth-monitor
 ```
 
 ## License
