@@ -17,7 +17,7 @@ This project runs a scheduled bandwidth test using [fast-cli](https://github.com
 
 ## How It Works
 1. The Dockerfile installs necessary packages, including `fast-cli`, `cron`, and Google Chrome (for Puppeteer).
-2. The main script, `run.sh`, performs the bandwidth test and saves the results in `/usr/src/app/speedtest_logs`.
+2. The main script, `speedtest.sh`, performs the bandwidth test and saves the results in `/usr/src/app/speedtest_logs`.
 3. A cron job is set up in the Docker container to run the test based on a schedule defined by the `CRON_SCHEDULE` environment variable (defaults to Monday 3 AM).
 4. The container keeps running, logging all `cron` activity to `/var/log/cron.log`.
 
